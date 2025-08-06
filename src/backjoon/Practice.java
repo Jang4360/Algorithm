@@ -3,65 +3,99 @@ import java.io.*;
 import java.util.*;
 
 public class Practice {
-    static int N;
-    static int[][] S;
-    static boolean[] visited;
-    static int min = Integer.MAX_VALUE;
-    
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        N = Integer.parseInt(br.readLine());
-        S = new int[N][N];
-        visited = new boolean[N];
-        
-        for (int i = 0; i < N; i++) {
-            StringTokenizer st = new StringTokenizer(br.readLine());
-            for (int j = 0; j < N; j++) {
-                S[i][j] = Integer.parseInt(st.nextToken());
-            }
-        }
-        
-        dfs(0, 0);
-        System.out.println(min);
-    }
-    
-    static void dfs(int idx, int count) {
-        // N/2명을 선택했으면 능력치 차이 계산
-        if (count == N / 2) {
-            diff();
-            return;
-        }
-        
-        for (int i = idx; i < N; i++) {
-            if (!visited[i]) {
-                visited[i] = true;
-                dfs(i + 1, count + 1);
-                visited[i] = false;
-            }
-        }
-    }
-    
-    static void diff() {
-        int team_start = 0;
-        int team_link = 0;
-        
-        // 스타트 팀 능력치 계산
-        for (int i = 0; i < N - 1; i++) {
-            for (int j = i + 1; j < N; j++) {
-                // 둘 다 스타트 팀
-                if (visited[i] && visited[j]) {
-                    team_start += S[i][j];
-                    team_start += S[j][i];
-                }
-                // 둘 다 링크 팀
-                else if (!visited[i] && !visited[j]) {
-                    team_link += S[i][j];
-                    team_link += S[j][i];
-                }
-            }
-        }
-        
-        int val = Math.abs(team_start - team_link);
-        min = Math.min(val, min);
-    }
+	public static void main(String[] args) {
+		
+		int[] a = new int[]{1,2,3,4,5};
+		int[] b = new int[]{1,2,2,3,3};
+		boolean[] visited = new boolean[a.length];
+ 		permute(a,visited,new ArrayList<>());
+ 		combine(a, 0, new ArrayList<>());
+ 		duplicatePermute(b, b.length, new ArrayList<>());
+ 		visited = new boolean[b.length];
+ 		uniquePermute(b, visited, new ArrayList<>());
+ 		uniqueCombine(b, 0, new ArrayList<>());
+	}
+	
+	// 순열
+	static void permute(int[] a, boolean[] visited, List<Integer> list) {
+		if (list.size() == a.length) {
+//			System.out.println(list);
+			return;
+		}
+		
+		for (int i = 0; i<a.length; i++) {
+			if (!visited[i]) {
+				list.add(a[i]);
+				visited[i] = true;
+				permute(a, visited, list);
+				list.remove(list.size()-1);
+				visited[i] = false;
+			}
+			
+			
+		}
+	}
+	
+	// 조합
+	static void combine(int[] a, int start, List<Integer> list) {
+		if (list.size() == 3) {
+//			System.out.println(list);
+			return;
+		}
+		
+		for (int i = start; i<a.length; i++) {
+			list.add(a[i]);
+			combine(a, i+1, list);
+			list.remove(list.size()-1);
+		}
+	}
+	
+	// 중복 순열
+	static void duplicatePermute(int[] b, int r, List<Integer> list) {
+		if (list.size() == r) {
+//			System.out.println(list);
+			return;
+		}
+		for (int i = 0; i<r; i++) {
+			list.add(b[i]);
+			duplicatePermute(b, r, list);
+			list.remove(list.size()-1);
+			
+		}
+	}
+	
+	// 중복 제거 순열
+	static void uniquePermute(int[] b, boolean[] visited, List<Integer> list) {
+		if (list.size() == b.length) {
+//			System.out.println(list);
+			return;
+		}
+		
+		for (int i = 0; i<b.length; i++) {
+			if (visited[i]) continue;
+			if (i>0 && b[i] == b[i-1] && !visited[i-1]) continue;
+			
+			visited[i] = true;
+			list.add(b[i]);
+			uniquePermute(b, visited, list);
+			visited[i] = false;
+			list.remove(list.size()-1);
+			
+		}
+	}
+	
+	// 중복 제거 조합
+	static void uniqueCombine(int[]b, int start, List<Integer> list) {
+		if (list.size() == 3) {
+			System.out.println(list);
+			return;
+		}
+		
+		for (int i = start; i<b.length; i++) {
+			if (i>start && b[i] == b[i-1]) continue;
+			list.add(b[i]);
+			uniqueCombine(b, start, list);
+			list.remove(list.size()-1);
+		}
+	}
 }
