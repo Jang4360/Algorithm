@@ -3,7 +3,7 @@ import java.io.*;
 import java.util.*;
 public class Problem15685 {
 	static int[][] board;
-	static int[][] dirs = {{0,1},{-1,0},{0,-1},{1,0}};
+	static int[][] dirs = {{1,0},{0,-1},{-1,0},{0,1}}; // 문제에서 말하는 x,y가 배열 기준으로 y,x로 바뀜
 	public static void main(String[] args) throws NumberFormatException, IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		int N = Integer.parseInt(br.readLine());
