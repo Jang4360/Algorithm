@@ -53,122 +53,50 @@ public class Problem5650 {
 	    			}
 	    		}
 	    	}
-	    	System.out.println(maxScore);
+	    	System.out.println("#" + t + " " +maxScore);
 	    }
 	}
 	static void playGame(int sx, int sy) {
 	    for (int startDir = 0; startDir < 4; startDir++) {
 	        int score = 0;
-	        int cx = sx, cy = sy;
+	        int r = sx, c = sy;
 	        int dir = startDir;
 
 	        while (true) {
-	            // 한 칸 전진
-	            int nx = cx + dirx[dir];
-	            int ny = cy + diry[dir];
+	            // 1) 한 칸 이동
+	            r += dirx[dir];
+	            c += diry[dir];
 
-	            // 벽이면 반사 + 점수
-	            if (nx < 0 || nx >= N || ny < 0 || ny >= N) {
-	                dir = (dir + 2) % 4; // 벽 == block 5
+	            // 2) 벽(out of bounds): 방향만 반사 + 점수, 그 턴 종료
+	            if (r < 0 || r >= N || c < 0 || c >= N) {
+	                dir = (dir + 2) % 4; // 정반사
 	                score++;
-	                cx += dirx[dir];
-	                cy += diry[dir];
-	                if (cx == sx && cy == sy) break;
-	                continue;
+	                continue;            // 좌표 r,c는 '바깥' 그대로, 다음 턴에 다시 안으로 들어옴
 	            }
 
-	            int cell = board[nx][ny];
+	            int cell = board[r][c];
 
-	            // 블랙홀
+	            // 3) 블랙홀 / 시작점 복귀 즉시 종료
 	            if (cell == -1) break;
+	            if (r == sx && c == sy) break;
 
-	            // 시작점 복귀
-	            if (nx == sx && ny == sy) break;
-
-	            // 빈칸
+	            // 4) 셀 타입 처리
 	            if (cell == 0) {
-	                cx = nx; cy = ny;
-	                continue;
-	            }
-
-	            // 블록
-	            if (1 <= cell && cell <= 5) {
-	                dir = blockDir[cell][dir]; // 먼저 dir 인덱스 갱신
+	                // 빈칸: 아무것도 안 함(이미 r,c가 그 칸임)
+	            } else if (1 <= cell && cell <= 5) {
+	                // 블록: 반사 + 점수 (좌표는 현재 칸 유지)
+	                dir = blockDir[cell][dir];
 	                score++;
-	                cx = nx; cy = ny;          // 블록 칸에 도달한 상태로 유지
-	                continue;
-	            }
-
-	            // 웜홀(6~10)
-	            if (cell >= 6) {
+	            } else { // 6~10 웜홀
+	                // 위치만 텔레포트(방향 유지)
 	                List<int[]> list = womHole.get(cell);
 	                int[] a = list.get(0), b = list.get(1);
-	                if (nx == a[0] && ny == a[1]) { cx = b[0]; cy = b[1]; }
-	                else                           { cx = a[0]; cy = a[1]; }
-	                // 방향은 유지(dir 그대로)
-	                continue;
+	                if (r == a[0] && c == a[1]) { r = b[0]; c = b[1]; }
+	                else                        { r = a[0]; c = a[1]; }
 	            }
 	        }
 	        maxScore = Math.max(maxScore, score);
 	    }
 	}
-
-	
-//	static void playGame(int sx, int sy) {
-//		
-//		for (int d = 0; d<4; d++) {
-//			int score = 0;
-//			int cx = sx, cy = sy;
-//			int dir = d;
-//		
-//			while (true) {
-//				int nx = cx+dirx[dir];
-//				int ny = cy+diry[dir];
-//
-//	    		// 벽일 경우 
-//	    		if (!(0<=nx && nx<N && 0<=ny && ny<N)) {
-//	    			dir = blockDir[5][dir];
-//	    			score++;
-//	    			cx += dirx[dir];
-//	    			cy += diry[dir];
-//	    			if (cx == sx && cy == sy) break;
-//	    			continue;
-//	    		}
-//	    		
-//	    		int num = board[nx][ny];
-//	    		
-//	    		// 블랙홀일 경우 
-//	    		if (num == -1) break;
-//	    		
-//	    		if (nx == sx && ny == sy) break;
-//	    		
-//	    		// 빈칸 
-//	    		if (num == 0) {
-//	    			cx = nx;
-//	    			cy = ny;
-//	    			continue;
-//	    		}
-//	    		
-//	    		// 블록
-//	    		if (1<=num && num<=5) {
-//	    			dir = blockDir[num][dir];
-//	    			score++;
-//	    			cx = nx; cy = ny;
-//	    			continue;
-//	    		}
-//	    		
-//	    		// 웜홀
-//	    		if (num>=6) {
-//	    			List<int[]> list = womHole.get(num);
-//	    			int[] a = list.get(0), b = list.get(1);
-//	                if (nx == a[0] && ny == a[1]) { cx = b[0]; cy = b[1]; }
-//	                else { cx = a[0]; cy = a[1]; }
-//	                continue;
-//	    		}
-//	    		
-//
-//	    	}
-//			maxScore = Math.max(score, maxScore);
-//		}
-//	}
 }
+
