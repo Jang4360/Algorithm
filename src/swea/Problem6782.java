@@ -10,15 +10,15 @@ public class Problem6782 {
 		StringBuilder sb = new StringBuilder();
 		int T = Integer.parseInt(br.readLine());
 		for (int t = 1; t<=T; t++) {
-			long N = Integer.parseInt(br.readLine());
+			long N = Long.parseLong(br.readLine());
 			if (N == 2) {
-				sb.append("#").append(t).append(" ").append(0).append("\n"); continue;
+				sb.append("#").append(t).append(" ").append(0).append("\n"); 
+				continue;
 			}
 			
 			long cnt = 0L;
-			while (true) {
-				if (N == 2L) break;
-				
+			
+			while (N!=2L) {
 				long root = (long) Math.sqrt(N);
 				if (root*root == N) {
 					N = root;

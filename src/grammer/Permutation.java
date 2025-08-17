@@ -2,34 +2,37 @@ package grammer;
 import java.util.*;
 public class Permutation {
 	static int N,R,totalCnt;
-	static int[] numbers;
+	static int[] numbers, input;
 	static boolean[] visited;
 	public static void main(String[] args) {
-		N = 6;
-		R = 2;
-		totalCnt = 0;
+		Scanner sc = new Scanner(System.in);
+		N = sc.nextInt();
+		R = sc.nextInt();
+
+		input = new int[N];
 		numbers = new int[R];
-		visited = new boolean[N+1];
-		permutation(0);
+		for (int i = 0; i<N; i++) {
+			input[i] = sc.nextInt();
+		}
+		permutation(0,0);
 		System.out.println();
-		duplicatePermutation(0);
+//		duplicatePermutation(0);
 		
 	}
 	
 	// 순열
-	static void permutation(int cnt) {
+	static void permutation(int cnt, int flag) {
 		if (cnt == R) {
 			totalCnt++;
 			System.out.println(Arrays.toString(numbers));
 			return;
 		}
 		
-		for (int i = 1; i<=N; i++) {
-			if (visited[i]) continue;
-			numbers[cnt] = i;
-			visited[i] = true;
-			permutation(cnt+1);
-			visited[i] = false;
+		for (int i = 0; i<N; i++) {
+			if ((flag & 1<<i) != 0) continue;
+			numbers[cnt] = input[i];
+			permutation(cnt+1, flag | 1<<i);
+			
 		}
 	}
 	
