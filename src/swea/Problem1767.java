@@ -4,12 +4,13 @@ import java.io.*;
 import java.util.*;
 
 public class Problem1767 {
-	static int N, minVal, len;
+	static int N, bestConnected, bestLen, length;
 	static int[][] board;
 	static boolean[][] visited;
 	static List<int[]> store;
 	static int[] dirx = {1,-1,0,0}; // 하 상 우 
 	static int[] diry = {0,0,1,-1};
+	
 	public static void main(String[] args) throws NumberFormatException, IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		StringBuilder sb = new StringBuilder();
@@ -33,77 +34,69 @@ public class Problem1767 {
 				}
 			}
 			
-			len = store.size();
-			if (len == 0) {
+			length = store.size();
+			if (length == 0) {
 				sb.append("#").append(t).append(" ").append(0).append("\n");
 				continue;
 			}
 			
-			minVal = Integer.MAX_VALUE;
-			dfs(0, new ArrayList<>());
-			sb.append("#").append(t).append(" ").append(minVal).append("\n");
+			visited = new boolean[N][N];
+			bestLen = Integer.MAX_VALUE; bestConnected = -1;
+			dfs(0, 0, 0);
+			sb.append("#").append(t).append(" ").append(bestLen).append("\n");
 		}
 		System.out.println(sb.toString());
 	}
 	
 	
 	
-	static void dfs(int cnt, List<Integer> list) {
-		if (list.size() == len) {
-			visited = new boolean[N][N];
-			findDistance(list);
+	static void dfs(int idx, int connected, int len) {
+		if (connected+(length-idx) < bestConnected) return;
+		if (connected+(length-idx) == bestConnected && len>=bestLen) return;
+		
+		if (idx == length) {
+			if (connected > bestConnected || (connected == bestConnected && len < bestLen)) {
+				bestLen = len;
+				bestConnected = connected;
+			}
 			return;
 		}
 		
-		
+		int x = store.get(idx)[0], y = store.get(idx)[1];
 		for (int d = 0; d<4; d++) {
-			if (isValid(cnt,d)) {
-				list.add(d);
-				dfs(cnt + 1, list);
-				list.remove(list.size()-1);
+			int wireLen = setWire(x,y,d);
+			if (wireLen>=0) {
+				dfs(idx + 1, connected +1, len + wireLen);
+				rollBack(x,y,d);
 			}
 		}
+		// 연결 포기 
+		dfs(idx + 1, connected, len);
 	}
 	
-	static boolean isValid(int cur, int d) {
-		int cx = store.get(cur)[0], cy = store.get(cur)[1];
-		int nx = cx + dirx[d], ny = cy + diry[d];
-		while (0<=nx && nx<N && 0<=ny && ny<N && board[nx][ny] == 0) {
+	static int setWire(int x, int y, int d) {
+		int nx = x + dirx[d], ny = y + diry[d];
+		List<int[]> path = new ArrayList<>();
+		while (0<=nx && nx<N && 0<=ny && ny<N) {
+			if (board[nx][ny] == 1 || visited[nx][ny]) return -1;
+			path.add(new int[] {nx,ny});
 			nx += dirx[d];
 			ny += diry[d];
 		}
-		if (0>nx || nx>=N || 0>ny || ny>=N) return true;
-		else return false;
-	}
-	
-	static void findDistance(List<Integer> direction) {
-		int total = 0;
-		for (int i = 0; i<len; i++) {
-			int cx = store.get(i)[0], cy = store.get(i)[1];
-			int d = direction.get(i);
-			int nx = cx + dirx[d], ny = cy + diry[d];
-			int dist = 0;
-			while (0<=nx && nx<N && 0<=ny && ny<N && !visited[nx][ny] && board[nx][ny] == 0) {
-				nx += dirx[d];
-				ny += diry[d];
-				dist++;
-				if (total>=minVal) return;
-			}
-			if (total>=minVal) return;
-			
-			if (0>nx || nx>=N || 0>ny || ny>=N) {
-				int curx = cx + dirx[d], cury = cy + diry[d];
-				while (0<=curx && curx<N && 0<=cury && cury<N) {
-					visited[curx][cury] = true;
-					curx += dirx[d]; cury += diry[d];
-				}
-				total += dist;
-			} else if (visited[nx][ny] || board[nx][ny] != 0) return;
+		for (int[] p : path) {
+			visited[p[0]][p[1]] = true;
 		}
-//		System.out.println(total);
-		minVal = Math.min(total, minVal);
+		return path.size();
 	}
 	
+	static void rollBack(int x, int y, int d) {
+		int nx = x + dirx[d], ny = y + diry[d];
+		while (0<=nx && nx<N && 0<=ny && ny<N) {
+			visited[nx][ny] = false;
+			nx += dirx[d];
+			ny += diry[d];
+		}
+	}
 	
 }
 

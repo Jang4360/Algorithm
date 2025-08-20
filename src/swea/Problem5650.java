@@ -11,24 +11,24 @@ public class Problem5650 {
 	static int[] diry = {0, 1, 0, -1};
 	static int[][] blockDir = {
 			{},
-			{2, 3, 1, 0},
-			{1, 3, 0, 2},
-			{3, 2, 0, 1},
-			{2, 0, 3, 1},
-			{2, 3, 0, 1}
+			{2, 3, 1, 0},   // 1번 블록
+			{1, 3, 0, 2},   // 2번 블록
+			{3, 2, 0, 1},   // 3번 블록
+			{2, 0, 3, 1},   // 4번 블록
+			{2, 3, 0, 1}    // 5번 블록
 	};
 	static Map<Integer, List<int[]>> womHole;
 	
 	public static void main(String[] args) throws NumberFormatException, IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-	    int T = Integer.parseInt(br.readLine());
+	    int T = Integer.parseInt(br.readLine().trim());
 	    
 	    for (int t = 1; t <= T; t++) {
 	    	maxScore = 0;
-	    	N = Integer.parseInt(br.readLine());
+	    	N = Integer.parseInt(br.readLine().trim());
 	    	board = new int[N][N];
 	    	for (int i = 0; i<N; i++) {
-	    		StringTokenizer st = new StringTokenizer(br.readLine());
+	    		StringTokenizer st = new StringTokenizer(br.readLine().trim());
 	    		for (int j = 0; j<N; j++) {
 	    			board[i][j] = Integer.parseInt(st.nextToken());
 	    		}
@@ -40,7 +40,7 @@ public class Problem5650 {
 	    	
 	    	for (int i = 0; i<N; i++) {
 	    		for (int j = 0; j<N; j++) {
-	    			if (6<=board[i][j]) {
+	    			if (6<=board[i][j] && board[i][j]<=10) {
 	    				womHole.get(board[i][j]).add(new int[] {i,j});
 	    			}
 	    		}
@@ -56,45 +56,46 @@ public class Problem5650 {
 	    	System.out.println("#" + t + " " +maxScore);
 	    }
 	}
-	static void playGame(int sx, int sy) {
+	static void playGame(int startx, int starty) {
 	    for (int startDir = 0; startDir < 4; startDir++) {
 	        int score = 0;
-	        int r = sx, c = sy;
+	        int row = startx, col = starty;
 	        int dir = startDir;
 
 	        while (true) {
 	            // 1) 한 칸 이동
-	            r += dirx[dir];
-	            c += diry[dir];
+	            row += dirx[dir];
+	            col += diry[dir];
 
-	            // 2) 벽(out of bounds): 방향만 반사 + 점수, 그 턴 종료
-	            if (r < 0 || r >= N || c < 0 || c >= N) {
-	                dir = (dir + 2) % 4; // 정반사
+	            // 2) 벽에 부딪혔을 경우: 방향만 반사, 점수 +1, 그 턴 종료
+	            if (row < 0 || row >= N || col < 0 || col >= N) {
+	                dir = (dir + 2) % 4; // 반사
 	                score++;
-	                continue;            // 좌표 r,c는 '바깥' 그대로, 다음 턴에 다시 안으로 들어옴
+	                continue;         
 	            }
+	            
+	            // 현재 위치의 값
+	            int current = board[row][col];
 
-	            int cell = board[r][c];
-
-	            // 3) 블랙홀 / 시작점 복귀 즉시 종료
-	            if (cell == -1) break;
-	            if (r == sx && c == sy) break;
-
-	            // 4) 셀 타입 처리
-	            if (cell == 0) {
-	                // 빈칸: 아무것도 안 함(이미 r,c가 그 칸임)
-	            } else if (1 <= cell && cell <= 5) {
-	                // 블록: 반사 + 점수 (좌표는 현재 칸 유지)
-	                dir = blockDir[cell][dir];
+	            // 3) 종료 조건: 블랙홀 / 시작점 복귀 즉시 종료
+	            if (current == -1 || row == startx && col == starty) break;
+	   
+	            // 4) 현재 위치 처리
+	            // 블록에 부딪혔을 경우 : 방향 반사, 점수 +1, 현재 위치 유지  
+	            if (1 <= current && current <= 5) {
+	                dir = blockDir[current][dir];
 	                score++;
-	            } else { // 6~10 웜홀
-	                // 위치만 텔레포트(방향 유지)
-	                List<int[]> list = womHole.get(cell);
-	                int[] a = list.get(0), b = list.get(1);
-	                if (r == a[0] && c == a[1]) { r = b[0]; c = b[1]; }
-	                else                        { r = a[0]; c = a[1]; }
+	            } 
+	            // 웜홀일 경우: 위치만 이동, 방향 유지
+	            else if (6 <= current && current <= 10){ 
+	                List<int[]> holeList = womHole.get(current);
+	                int[] a = holeList.get(0), b = holeList.get(1);
+	                
+	                if (row == a[0] && col == a[1]) { row = b[0]; col = b[1]; }
+	                else { row = a[0]; col = a[1]; }
 	            }
 	        }
+	        // 최대 점수 갱신
 	        maxScore = Math.max(maxScore, score);
 	    }
 	}
