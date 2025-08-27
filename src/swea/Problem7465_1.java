@@ -4,7 +4,7 @@ import java.util.*;
 public class Problem7465_1 {
 	static int N,M;
 	static boolean[] visited;
-	static List<Integer>[] store;
+	static Map<Integer,List<Integer>> map;
 	
 	public static void main(String[] args) throws NumberFormatException, IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -14,38 +14,33 @@ public class Problem7465_1 {
 			int N = Integer.parseInt(st.nextToken());
 			int M = Integer.parseInt(st.nextToken());
 			
-			store = new ArrayList[N+1];
-			for (int i = 1; i<N+1; i++) {
-				store[i] = new ArrayList<>();
-			}
-			
-			for (int i = 0; i<M; i++) {
-				StringTokenizer st1 = new StringTokenizer(br.readLine());
-				int a = Integer.parseInt(st1.nextToken());
-				int b = Integer.parseInt(st1.nextToken());
-				store[a].add(b);
-				store[b].add(a);
-				
-			}
-			
 			visited = new boolean[N+1];
-			int answer = 0;
-			for (int i = 1; i<=N; i++) {
-				if (!visited[i]) {
-					dfs(i);
-					answer++;
-				}
+			map = new HashMap<>();
+			for (int i = 0; i<M; i++) {
+				StringTokenizer st2 = new StringTokenizer(br.readLine());
+				int a = Integer.parseInt(st2.nextToken());
+				int b = Integer.parseInt(st2.nextToken());
+				map.computeIfAbsent(a, k -> new ArrayList<>()).add(b);
+				map.computeIfAbsent(b, k -> new ArrayList<>()).add(a);
 			}
-			System.out.println("#"+t+" "+ answer);
+			int answer = 0;
+			for (int n = 1; n<=N; n++) {
+				if (visited[n]) continue;
+				dfs(n);
+				answer++;
+			}
+			System.out.println("#" + t + " " + answer);
 		}
 		
 	}
 	
 	static void dfs(int node) {
 		visited[node] = true;
-		for (int next : store[node]) {
-			if (visited[next]) continue;
-			dfs(next);
+		if (map.containsKey(node)) {
+			for (int next : map.get(node)) {
+				if (visited[next]) continue;
+				dfs(next);
+			}
 		}
 	}
 }

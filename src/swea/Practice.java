@@ -3,50 +3,106 @@ import java.io.*;
 import java.util.*;
 
 public class Practice {
-    public static void main(String[] args) throws IOException {
+    static int N, M;
+    static int[][] lab;
+    static List<int[]> viruses = new ArrayList<>();
+    static int emptyCnt;             
+    static int best = Integer.MAX_VALUE;
+
+    static final int[] dx = {1,0,0,-1};
+    static final int[] dy = {0,1,-1,0};
+
+    public static void main(String[] args) throws Exception {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringBuilder sb = new StringBuilder();
-        int T = Integer.parseInt(br.readLine());
-        
-        for (int t = 1; t <= T; t++) {
-            int N = Integer.parseInt(br.readLine());
-            int[] heights = new int[N];
-            StringTokenizer st = new StringTokenizer(br.readLine());
-            
-            for (int i = 0; i < N; i++) {
-                heights[i] = Integer.parseInt(st.nextToken());
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        N = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
+
+        lab = new int[N][N];
+        emptyCnt = 0;
+        for (int i = 0; i < N; i++) {
+            st = new StringTokenizer(br.readLine());
+            for (int j = 0; j < N; j++) {
+                lab[i][j] = Integer.parseInt(st.nextToken());
+                if (lab[i][j] == 2) viruses.add(new int[]{i, j});
+                else if (lab[i][j] == 0) emptyCnt++;
             }
-            
-            int result = solve(heights);
-            sb.append("#").append(t).append(" ").append(result).append("\n");
         }
-        System.out.println(sb.toString());
+
+        if (emptyCnt == 0) {           // 빈 칸이 없으면 0
+            System.out.println(0);
+            return;
+        }
+
+        int K = viruses.size();
+        int[] pick = new int[M];
+        comb(0, 0, K, pick);
+
+        System.out.println(best == Integer.MAX_VALUE ? -1 : best);
     }
-    
-    static int solve(int[] heights) {
-        int oneDay = 0;    // 1만큼 자라야 하는 총 횟수
-        int twoDay = 0;    // 2만큼 자라야 하는 총 횟수
-        
-        // 각 나무별로 필요한 성장량 계산
-        for (int height : heights) {
-            twoDay += height / 2;      // 2씩 자라는 날 (몫)
-            oneDay += height % 2;      // 1씩 자라는 날 (나머지)
+
+    // 조합: idx부터, pcnt개 뽑기
+    static void comb(int idx, int pcnt, int K, int[] pick) {
+        // 가지치기: 남은 후보 수로는 M 못 채우면 컷
+        if (pcnt + (K - idx) < M) return;
+
+        if (pcnt == M) {
+            bfs(pick);
+            return;
         }
-        
-        // 2일 성장을 1일 성장으로 변환하여 균형 맞추기
-        // 2일 성장 1회 = 1일 성장 2회로 변환 가능 (2 -> 1+1)
-        while (twoDay > oneDay) {
-            twoDay--;
-            oneDay += 2;
+        if (idx == K) return;
+
+        // 뽑는 경우
+        pick[pcnt] = idx;
+        comb(idx + 1, pcnt + 1, K, pick);
+
+        // 안 뽑는 경우
+        comb(idx + 1, pcnt, K, pick);
+    }
+
+    // 다중 시작점 BFS: 빈 칸이 모두 감염될 때까지의 최소 시간 반환(갱신 only)
+    static void bfs(int[] pick) {
+        int[][] dist = new int[N][N];
+        for (int i = 0; i < N; i++) Arrays.fill(dist[i], -1);
+
+        ArrayDeque<int[]> q = new ArrayDeque<>();
+        for (int id : pick) {
+            int[] v = viruses.get(id);
+            q.offer(new int[]{v[0], v[1]});
+            dist[v[0]][v[1]] = 0;
         }
-        
-        // 최종 답 계산
-        if (oneDay == twoDay) {
-            return oneDay + twoDay;  // 완벽한 균형: 모든 날을 번갈아 사용
-        } else {
-            // oneDay > twoDay인 경우
-            int extra = oneDay - twoDay;
-            return twoDay * 2 + extra;  // 짝수 날은 교대로, 나머지는 연속으로
+
+        int infected = 0;
+        int maxTime = 0;
+
+        while (!q.isEmpty()) {
+            int[] cur = q.poll();
+            int x = cur[0], y = cur[1];
+            int t = dist[x][y];
+
+            // 현재까지의 시간으로도 이미 최적해를 넘으면 더 볼 필요 없음
+            if (maxTime >= best) return;
+
+            for (int d = 0; d < 4; d++) {
+                int nx = x + dx[d], ny = y + dy[d];
+                if (nx < 0 || nx >= N || ny < 0 || ny >= N) continue;
+                if (lab[nx][ny] == 1) continue;               // 벽
+                if (dist[nx][ny] != -1) continue;             // 이미 방문
+
+                dist[nx][ny] = t + 1;
+                q.offer(new int[]{nx, ny});
+
+                if (lab[nx][ny] == 0) {                       // 빈 칸 감염
+                    infected++;
+                    maxTime = Math.max(maxTime, t + 1);
+                    if (infected == emptyCnt) {               // 전부 감염 완료 → 조기 종료
+                        best = Math.min(best, maxTime);
+                        return;
+                    }
+                }
+                // lab[nx][ny] == 2(비활성 바이러스)면 시간은 흐르지만 ‘감염 카운트’는 증가하지 않음
+            }
         }
+        // 여기까지 왔으면 모든 빈 칸 감염 실패 → 갱신 없음
     }
 }
