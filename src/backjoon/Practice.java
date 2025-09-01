@@ -3,59 +3,84 @@ import java.io.*;
 import java.util.*;
 
 public class Practice {
-	static int minDist, N, M;
-	static int[][] road;
-	static List<int[]> chicken, home; 
+	static int N, minGap;
+	static int[] people;
+	static boolean[] visited;
+	static List<List<Integer>> map;
 	public static void main(String[] args) throws NumberFormatException, IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		String[] input = br.readLine().split(" ");
-		N = Integer.parseInt(input[0]);
-		M = Integer.parseInt(input[1]);
+		N = Integer.parseInt(br.readLine());
+		people = new int[N+1];
+		StringTokenizer st = new StringTokenizer(br.readLine());
+		for (int i = 1; i<=N; i++) people[i] = Integer.parseInt(st.nextToken());
 		
-		road = new int[N][N];
-		for (int i = 0; i<N; i++) {
-			StringTokenizer st = new StringTokenizer(br.readLine());
-			for (int j = 0; j<N; j++) {
-				road[i][j] = Integer.parseInt(st.nextToken());
+		map = new ArrayList<>();
+		for (int m = 0; m<=N; m++) map.add(new ArrayList<>());
+		int zeroCnt = 0;
+		for (int i = 1; i<=N; i++) {
+			StringTokenizer st2 = new StringTokenizer(br.readLine());
+			int n = Integer.parseInt(st2.nextToken());
+			if (n == 0) zeroCnt++;
+			for (int j = 0; j<n; j++) {
+				map.get(i).add(Integer.parseInt(st2.nextToken()));
 			}
 		}
-		
-		minDist = Integer.MAX_VALUE;
-		chicken = new ArrayList<>();
-		home = new ArrayList<>();
-		for (int i = 0; i<N; i++) {
-			for (int j = 0; j<N; j++) {
-				if (road[i][j] == 2) chicken.add(new int[] {i,j});
-				else if (road[i][j] == 1) home.add(new int[] {i,j});
+		if (N==2) {
+			System.out.println(Math.abs(people[1]-people[2]));
+		} else if (zeroCnt >= 2) {
+			System.out.println(-1);
+		} else {
+			minGap = Integer.MAX_VALUE;
+			for (int i = N/2; i>=1; i--) {
+				visited = new boolean[N+1];
+				comb(i, 1, new ArrayList<>());
 			}
+			System.out.println((minGap == Integer.MAX_VALUE) ? -1 : minGap);
 		}
-		comb(0, new ArrayList<>());
-		System.out.println(minDist);
 	}
 	
-	static void comb(int start, List<int[]> list) {
-		if (list.size() == M) {
-			calculate(list);
+	static void comb(int len, int start, List<Integer> list) {
+		if (len == list.size()) {
+			List<Integer> opposite = new ArrayList<>();
+			for (int i = 1; i<=N; i++) if (!visited[i]) opposite.add(i);
+			int op = isConnect(opposite);
+			int li = isConnect(list);
+			if (op == -1 || li == -1) return;
+			minGap = Math.min(Math.abs(op-li), minGap);
 			return;
 		}
 		
-		for (int i = start; i<chicken.size(); i++) {
-			list.add(chicken.get(i));
-			comb(i+1, list);
+		for (int i = start; i<=N; i++) {
+			list.add(i);
+			visited[i] = true;
+			comb(len, i+1, list);
 			list.remove(list.size()-1);
+			visited[i] = false;
 		}
 	}
 	
-	static void calculate(List<int[]> ch) {
-		int dist = 0;
-		for (int[] h : home) {
-			int minD = Integer.MAX_VALUE;
-			for (int[] loc : ch) {
-				minD = Math.min(Math.abs(loc[0]-h[0]) + Math.abs(loc[1]-h[1]),minD);
-			}
-			dist += minD;
-		}
+	static int isConnect(List<Integer> list) {
+		int length = list.size();
+		int cnt = 1;
+		int total = 0;
+		Deque<Integer> q = new ArrayDeque<>();
+		boolean[] visitNode = new boolean[N+1];
+		q.offer(list.get(0));
+		visitNode[list.get(0)] = true;
 		
-		minDist = Math.min(dist, minDist);
+		while (!q.isEmpty()) {
+			int cur = q.poll();
+			total += people[cur];
+			for (int next : map.get(cur)) {
+				if (visitNode[next]) continue;
+				if (list.contains(next)) {
+					q.offer(next);
+					visitNode[next] = true;
+					cnt++;
+				}
+			}
+		}
+		if (cnt != length) return -1;
+		return total;
 	}
 }
